@@ -263,10 +263,14 @@ def find_python_dll():
     except KeyError:
         pass
 
-    for d in lib_dirs:
-        dll = os.path.join(d, dllname)
-        if os.path.exists(dll):
-            return dll
+    # MSys2 uses a different naming convention; have to look for this, too
+    msys2dll = 'libpython%d.%dm.dll' % (maj, min)
+
+    for filename in [dllname, msys2dll]:
+        for dirname in lib_dirs:
+            dll = os.path.join(dirname, filename)
+            if os.path.exists(dll):
+                return dll
 
     raise ValueError("%s not found in %s" % (dllname, lib_dirs))
 
