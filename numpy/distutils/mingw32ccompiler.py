@@ -257,7 +257,15 @@ def find_python_dll():
     # - find it in python main dir (sys.base_prefix, if in a virtualenv)
     # - in system32,
     # - ortherwise (Sxs), I don't know how to get it.
-    lib_dirs = [sys.prefix, sys.base_prefix, os.path.join(sys.prefix, 'lib')]
+    stems = [sys.prefix]
+    if sys.base_prefix != sys.prefix:
+        stems.append(sys.base_prefix)
+
+    lib_dirs = []
+    for stem_dir in stems:
+        lib_dirs.append(stem_dir)
+        lib_dirs.append(os.path.join(stem_dir, 'lib'))
+        lib_dirs.append(os.path.join(stem_dir, 'bin')) # MSYS2
     try:
         lib_dirs.append(os.path.join(os.environ['SYSTEMROOT'], 'system32'))
     except KeyError:
