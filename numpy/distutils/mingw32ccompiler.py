@@ -266,10 +266,9 @@ def find_python_dll():
         lib_dirs.append(stem_dir)
         lib_dirs.append(os.path.join(stem_dir, 'lib'))
         lib_dirs.append(os.path.join(stem_dir, 'bin')) # MSYS2
-    try:
-        lib_dirs.append(os.path.join(os.environ['SYSTEMROOT'], 'system32'))
-    except KeyError:
-        pass
+
+    if 'SYSTEMROOT' in os.environ:
+        lib_dirs.append(os.path.join(os.environ['SYSTEMROOT'], 'System32'))
 
     # MSys2 uses a different naming convention; have to look for this, too
     msys2dll = 'libpython%d.%dm.dll' % (maj, min)
