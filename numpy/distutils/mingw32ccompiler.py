@@ -405,20 +405,34 @@ def build_import_library():
     else:
         raise ValueError("Unhandled arch %s" % arch)
 
+def _check_for_import_lib():
+    """Check if an import library for the Python runtime already exists."""
+    major_version, minor_version = tuple(sys.version_info[:2])
+    out_names = ['libpython%d%d.a' % (major_version, minor_version),
+                 'libpython%d.%d.dll.a' % (major_version, minor_version)]
+    stems = [sys.prefix]
+    if sys.base_prefix != sys.prefix:
+        stems.append(sys.base_prefix)
+
+    dir_names = []
+    for stem_dir in stems:
+        dir_names.append(os.path.join(stem_dir, 'libs'))
+        dir_names.append(os.path.join(stem_dir, 'lib')) # MSYS2
+
+    for filename in out_names:
+        for dirname in dir_names:
+            fullname = os.path.join(dirname, filename)
+            if os.path.isfile(fullname):
+                # already exists, in location given
+                return (True, fullname)
+
+    # needs to be built, preferred location given first
+    return (False, os.path.join(dir_names[0], out_names[0]))
+
 def _build_import_library_amd64():
-    dll_file = find_python_dll()
-
-    out_name = "libpython%d%d.a" % tuple(sys.version_info[:2])
-    out_file = os.path.join(sys.prefix, 'libs', out_name)
-    if os.path.isfile(out_file):
-        log.debug('Skip building import library: "%s" exists' %
-                  (out_file))
-        return
-
-    # didn't exist in virtualenv, maybe in base distribution?
-    base_file = os.path.join(sys.base_prefix, 'libs', out_name)
-    if os.path.isfile(base_file):
-        log.debug('Skip building import library: "%s" exists', base_file)
+    out_exists, out_file = _check_for_import_lib()
+    if out_exists:
+        log.debug('Skip building import library: "%s" exists', out_file)
         return
 
     def_name = "python%d%d.def" % tuple(sys.version_info[:2])
@@ -435,15 +449,9 @@ def _build_import_library_amd64():
 def _build_import_library_x86():
     """ Build the import libraries for Mingw32-gcc on Windows
     """
-    out_name = "libpython%d%d.a" % tuple(sys.version_info[:2])
-    out_file = os.path.join(sys.prefix, 'libs', out_name)
-    if os.path.isfile(out_file):
+    out_exists, out_file = _check_for_import_lib()
+    if out_exists:
         log.debug('Skip building import library: "%s" exists', out_file)
-        return
-    # didn't find in virtualenv, try base distribution, too
-    base_file = os.path.join(sys.base_prefix, 'libs', out_name)
-    if os.path.isfile(base_file):
-        log.debug('Skip building import library: "%s" exists', base_file)
         return
 
     lib_name = "python%d%d.lib" % tuple(sys.version_info[:2])
