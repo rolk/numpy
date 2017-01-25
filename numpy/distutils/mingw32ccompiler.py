@@ -350,6 +350,13 @@ def build_msvcr_library(debug=False):
 
     msvcr_name = msvc_runtime_library()
 
+    # if we couldn't find the MSVC runtime at all, then we are running on a
+    # Python distribution which is customed compiled; trust that the compiler
+    # is the same as the one available to us now, and that it is capable of
+    # linking with the correct runtime without any extra options
+    if not msvcr_name:
+        return False
+
     # Skip using a custom library for versions < MSVC 8.0
     msvcr_ver = msvc_runtime_major()
     if msvcr_ver and msvcr_ver < 80:
