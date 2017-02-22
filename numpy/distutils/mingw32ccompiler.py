@@ -348,15 +348,14 @@ def build_msvcr_library(debug=False):
     if os.name != 'nt':
         return False
 
-    msvcr_name = msvc_runtime_library()
-
     # Skip using a custom library for versions < MSVC 8.0
     msvcr_ver = msvc_runtime_major()
-    if msvcr_ver and msvcr_ver < 80:
+    if (msvcr_ver is None) or (msvcr_ver < 80):
         log.debug('Skip building msvcr library:'
                   ' custom functionality not present')
         return False
 
+    msvcr_name = msvc_runtime_library()
     if debug:
         msvcr_name += 'd'
 
